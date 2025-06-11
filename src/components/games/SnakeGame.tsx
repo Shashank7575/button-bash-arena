@@ -1,8 +1,8 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { MobileSnakeControls } from "./MobileSnakeControls";
 
 interface Position {
   x: number;
@@ -15,9 +15,9 @@ interface SnakeGameProps {
 
 export const SnakeGame = ({ onBack }: SnakeGameProps) => {
   const { toast } = useToast();
-  const GRID_SIZE = 20;
-  const INITIAL_SNAKE = [{ x: 10, y: 10 }];
-  const INITIAL_FOOD = { x: 15, y: 15 };
+  const GRID_SIZE = 15; // Smaller grid for mobile
+  const INITIAL_SNAKE = [{ x: 7, y: 7 }];
+  const INITIAL_FOOD = { x: 10, y: 10 };
 
   const [snake, setSnake] = useState<Position[]>(INITIAL_SNAKE);
   const [food, setFood] = useState<Position>(INITIAL_FOOD);
@@ -106,6 +106,22 @@ export const SnakeGame = ({ onBack }: SnakeGameProps) => {
     });
   }, [direction, food, gameOver, generateFood, isPlaying, score, toast]);
 
+  const handleDirectionChange = (newDirection: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') => {
+    if (!isPlaying || gameOver) return;
+
+    // Prevent reverse direction
+    if (
+      (direction === 'UP' && newDirection === 'DOWN') ||
+      (direction === 'DOWN' && newDirection === 'UP') ||
+      (direction === 'LEFT' && newDirection === 'RIGHT') ||
+      (direction === 'RIGHT' && newDirection === 'LEFT')
+    ) {
+      return;
+    }
+
+    setDirection(newDirection);
+  };
+
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (!isPlaying || gameOver) return;
@@ -114,22 +130,22 @@ export const SnakeGame = ({ onBack }: SnakeGameProps) => {
         case 'ArrowUp':
         case 'w':
         case 'W':
-          if (direction !== 'DOWN') setDirection('UP');
+          handleDirectionChange('UP');
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
-          if (direction !== 'UP') setDirection('DOWN');
+          handleDirectionChange('DOWN');
           break;
         case 'ArrowLeft':
         case 'a':
         case 'A':
-          if (direction !== 'RIGHT') setDirection('LEFT');
+          handleDirectionChange('LEFT');
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
-          if (direction !== 'LEFT') setDirection('RIGHT');
+          handleDirectionChange('RIGHT');
           break;
       }
     };
@@ -141,7 +157,7 @@ export const SnakeGame = ({ onBack }: SnakeGameProps) => {
   useEffect(() => {
     if (!isPlaying) return;
 
-    const gameLoop = setInterval(moveSnake, 150);
+    const gameLoop = setInterval(moveSnake, 200); // Slightly slower for mobile
     return () => clearInterval(gameLoop);
   }, [moveSnake, isPlaying]);
 
@@ -149,36 +165,36 @@ export const SnakeGame = ({ onBack }: SnakeGameProps) => {
     setIsPlaying(true);
     toast({
       title: "Game Started!",
-      description: "Use arrow keys or WASD to control the snake"
+      description: "Use controls below or keyboard to play"
     });
   };
 
   return (
-    <div className="min-h-screen p-8 flex flex-col items-center">
-      <div className="max-w-2xl w-full">
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
+    <div className="min-h-screen p-4 flex flex-col items-center">
+      <div className="max-w-md w-full">
+        <div className="flex items-center justify-between mb-4">
+          <Button variant="outline" onClick={onBack} className="flex items-center gap-2" size="sm">
             <ArrowLeft className="w-4 h-4" />
-            Back to Games
+            Back
           </Button>
-          <div className="text-2xl font-bold">Score: {score}</div>
+          <div className="text-lg font-bold">Score: {score}</div>
         </div>
 
-        <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold mb-2 text-primary">Snake Classic</h1>
-          <p className="text-muted-foreground">
-            Use arrow keys or WASD to control the snake
+        <div className="text-center mb-4">
+          <h1 className="text-2xl font-bold mb-2 text-primary">Snake Classic</h1>
+          <p className="text-sm text-muted-foreground">
+            Use controls below or keyboard to play
           </p>
         </div>
 
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-4">
           <div 
-            className="grid bg-card border border-border rounded-lg p-4"
+            className="grid bg-card border border-border rounded-lg p-2"
             style={{
               gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
               gap: '1px',
-              width: '400px',
-              height: '400px'
+              width: '300px',
+              height: '300px'
             }}
           >
             {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, index) => {
@@ -202,28 +218,33 @@ export const SnakeGame = ({ onBack }: SnakeGameProps) => {
           </div>
         </div>
 
-        <div className="flex gap-4 justify-center">
+        <MobileSnakeControls 
+          onDirectionChange={handleDirectionChange}
+          disabled={!isPlaying || gameOver}
+        />
+
+        <div className="flex gap-2 justify-center mt-4">
           {!isPlaying && !gameOver && (
-            <Button onClick={startGame} className="game-button">
+            <Button onClick={startGame} className="game-button flex-1">
               Start Game
             </Button>
           )}
           {gameOver && (
-            <Button onClick={resetGame} className="game-button flex items-center gap-2">
+            <Button onClick={resetGame} className="game-button flex items-center gap-2 flex-1">
               <RotateCcw className="w-4 h-4" />
               Play Again
             </Button>
           )}
           {isPlaying && (
-            <Button onClick={() => setIsPlaying(false)} variant="outline">
+            <Button onClick={() => setIsPlaying(false)} variant="outline" className="flex-1">
               Pause
             </Button>
           )}
         </div>
 
         {gameOver && (
-          <div className="text-center mt-6 p-6 bg-card border border-border rounded-lg">
-            <h2 className="text-2xl font-bold text-destructive mb-2">Game Over!</h2>
+          <div className="text-center mt-4 p-4 bg-card border border-border rounded-lg">
+            <h2 className="text-xl font-bold text-destructive mb-2">Game Over!</h2>
             <p className="text-muted-foreground">Final Score: {score}</p>
           </div>
         )}

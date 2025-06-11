@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RotateCcw, Timer, Target } from "lucide-react";
@@ -28,8 +27,8 @@ export const ButtonBashArena = ({ onBack }: ButtonBashArenaProps) => {
   const generateButton = useCallback((): GameButton => {
     return {
       id: Math.random(),
-      x: Math.random() * 80 + 5, // 5% to 85% to keep buttons in bounds
-      y: Math.random() * 80 + 5,
+      x: Math.random() * 70 + 10, // More padding for mobile
+      y: Math.random() * 70 + 10,
       active: true
     };
   }, []);
@@ -43,7 +42,7 @@ export const ButtonBashArena = ({ onBack }: ButtonBashArenaProps) => {
     setGameButtons([generateButton()]);
     toast({
       title: "Game Started!",
-      description: "Click the glowing buttons as fast as you can!"
+      description: "Tap the glowing buttons!"
     });
   };
 
@@ -75,7 +74,7 @@ export const ButtonBashArena = ({ onBack }: ButtonBashArenaProps) => {
     
     // Add new button(s)
     const newButtons = [];
-    const buttonCount = Math.random() > 0.7 ? 2 : 1; // 30% chance for 2 buttons
+    const buttonCount = Math.random() > 0.7 ? 2 : 1;
     
     for (let i = 0; i < buttonCount; i++) {
       newButtons.push(generateButton());
@@ -111,8 +110,7 @@ export const ButtonBashArena = ({ onBack }: ButtonBashArenaProps) => {
       setGameButtons(prev => {
         const now = Date.now();
         return prev.filter(button => {
-          // Remove buttons after 3 seconds
-          return now - (button.id * 1000) < 3000;
+          return now - (button.id * 1000) < 2500; // Shorter time for mobile
         });
       });
     }, 100);
@@ -132,40 +130,40 @@ export const ButtonBashArena = ({ onBack }: ButtonBashArenaProps) => {
   const accuracy = clicks > 0 ? Math.round((score / 10 / clicks) * 100) : 0;
 
   return (
-    <div className="min-h-screen p-8 flex flex-col items-center">
-      <div className="max-w-4xl w-full">
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
+    <div className="min-h-screen p-4 flex flex-col items-center">
+      <div className="max-w-md w-full">
+        <div className="flex items-center justify-between mb-4">
+          <Button variant="outline" onClick={onBack} className="flex items-center gap-2" size="sm">
             <ArrowLeft className="w-4 h-4" />
-            Back to Games
+            Back
           </Button>
-          <div className="flex gap-6 text-lg font-semibold">
-            <div className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
-              Score: {score}
+          <div className="flex gap-4 text-sm font-semibold">
+            <div className="flex items-center gap-1">
+              <Target className="w-4 h-4 text-primary" />
+              {score}
             </div>
-            <div className="flex items-center gap-2">
-              <Timer className="w-5 h-5 text-red-500" />
-              Time: {timeLeft}s
+            <div className="flex items-center gap-1">
+              <Timer className="w-4 h-4 text-red-500" />
+              {timeLeft}s
             </div>
           </div>
         </div>
 
-        <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold mb-2 text-primary">Button Bash Arena</h1>
-          <p className="text-muted-foreground">
-            Click the glowing buttons before they disappear!
+        <div className="text-center mb-4">
+          <h1 className="text-2xl font-bold mb-2 text-primary">Button Bash Arena</h1>
+          <p className="text-sm text-muted-foreground">
+            Tap the glowing buttons before they disappear!
           </p>
           {highScore > 0 && (
-            <p className="text-primary font-semibold mt-2">
+            <p className="text-primary font-semibold mt-1 text-sm">
               High Score: {highScore}
             </p>
           )}
         </div>
 
         {!isPlaying && !gameOver && (
-          <div className="text-center mb-8">
-            <Button onClick={startGame} className="game-button text-xl px-8 py-4">
+          <div className="text-center mb-6">
+            <Button onClick={startGame} className="game-button w-full">
               Start Game
             </Button>
           </div>
@@ -173,14 +171,14 @@ export const ButtonBashArena = ({ onBack }: ButtonBashArenaProps) => {
 
         {isPlaying && (
           <div 
-            className="relative bg-card border border-border rounded-lg mx-auto mb-6 overflow-hidden"
-            style={{ width: '600px', height: '400px' }}
+            className="relative bg-card border border-border rounded-lg mx-auto mb-6 overflow-hidden touch-none"
+            style={{ width: '100%', height: '350px' }}
           >
             {gameButtons.map(button => (
               <button
                 key={button.id}
                 onClick={() => handleButtonClick(button.id)}
-                className="absolute w-16 h-16 bg-primary hover:bg-primary/80 rounded-full animate-pulse-glow transition-all duration-200 hover:scale-110 active:scale-95 flex items-center justify-center text-white font-bold text-lg"
+                className="absolute w-14 h-14 bg-primary hover:bg-primary/80 rounded-full animate-pulse-glow transition-all duration-200 hover:scale-110 active:scale-95 flex items-center justify-center text-white font-bold text-lg touch-manipulation"
                 style={{
                   left: `${button.x}%`,
                   top: `${button.y}%`,
@@ -192,7 +190,7 @@ export const ButtonBashArena = ({ onBack }: ButtonBashArenaProps) => {
             ))}
             
             {gameButtons.length === 0 && isPlaying && (
-              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
                 Waiting for buttons...
               </div>
             )}
@@ -200,23 +198,23 @@ export const ButtonBashArena = ({ onBack }: ButtonBashArenaProps) => {
         )}
 
         {gameOver && (
-          <div className="text-center p-8 bg-card border border-border rounded-lg mb-6">
-            <h2 className="text-3xl font-bold mb-4 text-primary">Game Over!</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-6">
+          <div className="text-center p-6 bg-card border border-border rounded-lg mb-6">
+            <h2 className="text-2xl font-bold mb-4 text-primary">Game Over!</h2>
+            <div className="grid grid-cols-3 gap-4 text-center mb-6">
               <div>
-                <div className="text-2xl font-bold text-primary">{score}</div>
-                <div className="text-muted-foreground">Final Score</div>
+                <div className="text-xl font-bold text-primary">{score}</div>
+                <div className="text-xs text-muted-foreground">Score</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-primary">{clicks}</div>
-                <div className="text-muted-foreground">Total Clicks</div>
+                <div className="text-xl font-bold text-primary">{clicks}</div>
+                <div className="text-xs text-muted-foreground">Clicks</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-primary">{accuracy}%</div>
-                <div className="text-muted-foreground">Accuracy</div>
+                <div className="text-xl font-bold text-primary">{accuracy}%</div>
+                <div className="text-xs text-muted-foreground">Accuracy</div>
               </div>
             </div>
-            <Button onClick={startGame} className="game-button flex items-center gap-2">
+            <Button onClick={startGame} className="game-button w-full flex items-center justify-center gap-2">
               <RotateCcw className="w-4 h-4" />
               Play Again
             </Button>
@@ -224,18 +222,18 @@ export const ButtonBashArena = ({ onBack }: ButtonBashArenaProps) => {
         )}
 
         <div className="text-center">
-          <h3 className="text-xl font-semibold mb-4">How to Play</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-            <div className="p-4 bg-card border border-border rounded-lg">
-              <div className="w-8 h-8 bg-primary/20 rounded-full mx-auto mb-2 flex items-center justify-center">1</div>
-              <p>Click the glowing buttons as fast as you can</p>
+          <h3 className="text-lg font-semibold mb-3">How to Play</h3>
+          <div className="grid grid-cols-1 gap-3 text-xs text-muted-foreground">
+            <div className="p-3 bg-card border border-border rounded-lg">
+              <div className="w-6 h-6 bg-primary/20 rounded-full mx-auto mb-2 flex items-center justify-center text-xs">1</div>
+              <p>Tap glowing buttons as fast as you can</p>
             </div>
-            <div className="p-4 bg-card border border-border rounded-lg">
-              <div className="w-8 h-8 bg-primary/20 rounded-full mx-auto mb-2 flex items-center justify-center">2</div>
-              <p>Buttons disappear after 3 seconds</p>
+            <div className="p-3 bg-card border border-border rounded-lg">
+              <div className="w-6 h-6 bg-primary/20 rounded-full mx-auto mb-2 flex items-center justify-center text-xs">2</div>
+              <p>Buttons disappear after 2.5 seconds</p>
             </div>
-            <div className="p-4 bg-card border border-border rounded-lg">
-              <div className="w-8 h-8 bg-primary/20 rounded-full mx-auto mb-2 flex items-center justify-center">3</div>
+            <div className="p-3 bg-card border border-border rounded-lg">
+              <div className="w-6 h-6 bg-primary/20 rounded-full mx-auto mb-2 flex items-center justify-center text-xs">3</div>
               <p>Score as many points as possible in 30 seconds</p>
             </div>
           </div>
